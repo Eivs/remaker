@@ -1,32 +1,33 @@
-import React, { useState, useCallback } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import {
-  oneDark,
-  oneLight,
-} from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { useTheme } from '../contexts/ThemeContext'
-import MermaidRenderer from './MermaidRenderer'
 import {
   Bold,
-  Italic,
+  Code,
+  Eye,
+  EyeOff,
   Heading1,
   Heading2,
   Heading3,
+  Italic,
+  Link as LinkIcon,
   List,
   ListOrdered,
   Quote,
-  Code,
-  Link as LinkIcon,
-  Eye,
-  EyeOff,
-} from 'lucide-react'
+} from 'lucide-react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import {
+  oneDark,
+  oneLight,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
+import { useTheme } from '../contexts/ThemeContext';
+import MermaidRenderer from './MermaidRenderer';
 
 interface MarkdownEditorProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -34,36 +35,36 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onChange,
   placeholder,
 }) => {
-  const [showPreview, setShowPreview] = useState(true)
-  const { theme } = useTheme()
+  const [showPreview, setShowPreview] = useState(true);
+  const { theme } = useTheme();
 
   const insertText = useCallback(
     (before: string, after: string = '') => {
       const textarea = document.getElementById(
         'markdown-textarea'
-      ) as HTMLTextAreaElement
-      if (!textarea) return
+      ) as HTMLTextAreaElement;
+      if (!textarea) return;
 
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const selectedText = value.substring(start, end)
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = value.substring(start, end);
       const newText =
         value.substring(0, start) +
         before +
         selectedText +
         after +
-        value.substring(end)
+        value.substring(end);
 
-      onChange(newText)
+      onChange(newText);
 
       // 重新设置光标位置
       setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + before.length, end + before.length)
-      }, 0)
+        textarea.focus();
+        textarea.setSelectionRange(start + before.length, end + before.length);
+      }, 0);
     },
     [value, onChange]
-  )
+  );
 
   const toolbarButtons = [
     { icon: Bold, action: () => insertText('**', '**'), title: '粗体' },
@@ -76,7 +77,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     { icon: Quote, action: () => insertText('> '), title: '引用' },
     { icon: Code, action: () => insertText('`', '`'), title: '行内代码' },
     { icon: LinkIcon, action: () => insertText('[', '](url)'), title: '链接' },
-  ]
+  ];
 
   return (
     <div className="h-full flex flex-col">
@@ -85,6 +86,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         <div className="flex items-center space-x-2">
           {toolbarButtons.map((button, index) => (
             <button
+              type="button"
               key={index}
               onClick={button.action}
               title={button.title}
@@ -96,6 +98,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         </div>
 
         <button
+          type="button"
           onClick={() => setShowPreview(!showPreview)}
           className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
         >
@@ -132,9 +135,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 remarkPlugins={[remarkGfm]}
                 components={{
                   code({ node, inline, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || '')
-                    const language = match ? match[1] : ''
-                    const code = String(children).replace(/\n$/, '')
+                    const match = /language-(\w+)/.exec(className || '');
+                    const language = match ? match[1] : '';
+                    const code = String(children).replace(/\n$/, '');
 
                     if (!inline && language === 'mermaid') {
                       return (
@@ -142,7 +145,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                           chart={code}
                           id={`mermaid-${Math.random().toString(36).substr(2, 9)}`}
                         />
-                      )
+                      );
                     }
 
                     return !inline && match ? (
@@ -158,7 +161,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                       <code className={className} {...props}>
                         {children}
                       </code>
-                    )
+                    );
                   },
                 }}
               >
@@ -169,7 +172,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MarkdownEditor
+export default MarkdownEditor;

@@ -1,47 +1,48 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { articlesAPI } from '../services/api'
-import MarkdownEditor from '../components/MarkdownEditor'
-import { Save, Globe, EyeOff } from 'lucide-react'
-import type { Article } from '../types'
+import { EyeOff, Globe, Save } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import MarkdownEditor from '../components/MarkdownEditor';
+import { articlesAPI } from '../services/api';
+import type { Article } from '../types';
 
 const Editor: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [article, setArticle] = useState<Article | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isPublishing, setIsPublishing] = useState(false)
-  const [saveMessage, setSaveMessage] = useState('')
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [article, setArticle] = useState<Article | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     if (id) {
-      loadArticle(parseInt(id))
+      loadArticle(parseInt(id));
     }
-  }, [id])
+  }, [id]);
 
   const loadArticle = async (articleId: number) => {
     try {
-      const articleData = await articlesAPI.getArticle(articleId)
-      setArticle(articleData)
-      setTitle(articleData.title)
-      setContent(articleData.content)
+      const articleData = await articlesAPI.getArticle(articleId);
+      setArticle(articleData);
+      setTitle(articleData.title);
+      setContent(articleData.content);
     } catch (error: any) {
-      console.error('Failed to load article:', error)
-      navigate('/')
+      console.error('Failed to load article:', error);
+      navigate('/');
     }
-  }
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
-      setSaveMessage('请填写标题和内容')
-      return
+      setSaveMessage('请填写标题和内容');
+      return;
     }
 
-    setIsSaving(true)
-    setSaveMessage('')
+    setIsSaving(true);
+    setSaveMessage('');
 
     try {
       if (article) {
@@ -49,57 +50,57 @@ const Editor: React.FC = () => {
         const updatedArticle = await articlesAPI.updateArticle(article.id, {
           title: title.trim(),
           content: content.trim(),
-        })
-        setArticle(updatedArticle)
-        setSaveMessage('保存成功')
+        });
+        setArticle(updatedArticle);
+        setSaveMessage('保存成功');
       } else {
         // 创建新文章
         const newArticle = await articlesAPI.createArticle({
           title: title.trim(),
           content: content.trim(),
-        })
-        setArticle(newArticle)
-        setSaveMessage('创建成功')
-        navigate(`/editor/${newArticle.id}`)
+        });
+        setArticle(newArticle);
+        setSaveMessage('创建成功');
+        navigate(`/editor/${newArticle.id}`);
       }
     } catch (error: any) {
       setSaveMessage(
         '保存失败：' + (error.response?.data?.detail || error.message)
-      )
+      );
     } finally {
-      setIsSaving(false)
-      setTimeout(() => setSaveMessage(''), 3000)
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage(''), 3000);
     }
-  }
+  };
 
   const handlePublish = async () => {
     if (!article) {
-      setSaveMessage('请先保存文章')
-      return
+      setSaveMessage('请先保存文章');
+      return;
     }
 
-    setIsPublishing(true)
-    setSaveMessage('')
+    setIsPublishing(true);
+    setSaveMessage('');
 
     try {
       if (article.is_published) {
-        await articlesAPI.unpublishArticle(article.id)
-        setArticle({ ...article, is_published: false })
-        setSaveMessage('已取消发布')
+        await articlesAPI.unpublishArticle(article.id);
+        setArticle({ ...article, is_published: false });
+        setSaveMessage('已取消发布');
       } else {
-        await articlesAPI.publishArticle(article.id)
-        setArticle({ ...article, is_published: true })
-        setSaveMessage('发布成功')
+        await articlesAPI.publishArticle(article.id);
+        setArticle({ ...article, is_published: true });
+        setSaveMessage('发布成功');
       }
     } catch (error: any) {
       setSaveMessage(
         '操作失败：' + (error.response?.data?.detail || error.message)
-      )
+      );
     } finally {
-      setIsPublishing(false)
-      setTimeout(() => setSaveMessage(''), 3000)
+      setIsPublishing(false);
+      setTimeout(() => setSaveMessage(''), 3000);
     }
-  }
+  };
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
@@ -171,7 +172,7 @@ const Editor: React.FC = () => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Editor
+export default Editor;

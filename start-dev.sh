@@ -30,7 +30,7 @@ cd ..
 echo "✅ 开发环境启动完成！"
 echo ""
 echo "📍 服务地址："
-echo "   前端: http://localhost:5173"
+echo "   前端: http://localhost:3000"
 echo "   后端: http://localhost:8000"
 echo "   API 文档: http://localhost:8000/docs"
 echo ""

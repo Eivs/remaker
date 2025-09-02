@@ -1,26 +1,26 @@
-import React from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { useTheme } from '../contexts/ThemeContext'
-import { LogOut, PenTool, Home, Globe, Sun, Moon } from 'lucide-react'
+import { Globe, Home, LogOut, Moon, PenTool, Sun } from 'lucide-react';
+import type React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate('/login');
+  };
 
   const isAuthPage =
-    location.pathname === '/login' || location.pathname === '/register'
+    location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -79,6 +79,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex items-center space-x-4">
                 {/* 主题切换按钮 */}
                 <button
+                  type="button"
                   onClick={toggleTheme}
                   className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   aria-label="切换主题"
@@ -96,6 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       欢迎，{user.username}
                     </span>
                     <button
+                      type="button"
                       onClick={handleLogout}
                       className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                     >
@@ -114,7 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

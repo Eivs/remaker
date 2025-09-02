@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -21,19 +27,19 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
       return savedTheme;
     }
-    
+
     // 检查系统偏好
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    
+
     return 'light';
   });
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem('theme', newTheme);
-    
+
     // 更新 HTML 类名
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -49,7 +55,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // 监听系统主题变化
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       // 只在没有手动设置主题时才跟随系统主题
       const savedTheme = localStorage.getItem('theme');

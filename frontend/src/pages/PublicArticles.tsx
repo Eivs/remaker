@@ -1,49 +1,54 @@
-import React, { useState, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { useTheme } from '../contexts/ThemeContext'
-import { articlesAPI } from '../services/api'
-import { Globe, Clock, User, ArrowLeft } from 'lucide-react'
-import type { Article } from '../types'
+import { ArrowLeft, Clock, Globe, User } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import {
+  oneDark,
+  oneLight,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
+import { useTheme } from '../contexts/ThemeContext';
+import { articlesAPI } from '../services/api';
+import type { Article } from '../types';
 
 const PublicArticles: React.FC = () => {
-  const [articles, setArticles] = useState<Article[]>([])
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const { theme } = useTheme()
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const { theme } = useTheme();
 
   useEffect(() => {
-    loadPublicArticles()
-  }, [])
+    loadPublicArticles();
+  }, []);
 
   const loadPublicArticles = async () => {
     try {
-      const data = await articlesAPI.getPublicArticles()
-      setArticles(data)
+      const data = await articlesAPI.getPublicArticles();
+      setArticles(data);
     } catch (err: any) {
-      setError('加载文章失败：' + (err.response?.data?.detail || err.message))
+      setError('加载文章失败：' + (err.response?.data?.detail || err.message));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN')
-  }
+    return new Date(dateString).toLocaleDateString('zh-CN');
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   // 文章详情视图
   if (selectedArticle) {
+    console.log(selectedArticle);
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
@@ -81,7 +86,7 @@ const PublicArticles: React.FC = () => {
                 remarkPlugins={[remarkGfm]}
                 components={{
                   code({ node, inline, className, children, ...props }) {
-                    const match = /language-(\\w+)/.exec(className || '')
+                    const match = /language-(\\w+)/.exec(className || '');
                     return !inline && match ? (
                       <SyntaxHighlighter
                         style={theme === 'dark' ? oneDark : oneLight}
@@ -95,7 +100,7 @@ const PublicArticles: React.FC = () => {
                       <code className={className} {...props}>
                         {children}
                       </code>
-                    )
+                    );
                   },
                 }}
               >
@@ -105,15 +110,19 @@ const PublicArticles: React.FC = () => {
           </div>
         </article>
       </div>
-    )
+    );
   }
 
   // 文章列表视图
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">公开文章</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">浏览所有用户发布的 Markdown 文章</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          公开文章
+        </h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          浏览所有用户发布的 Markdown 文章
+        </p>
       </div>
 
       {error && (
@@ -163,7 +172,7 @@ const PublicArticles: React.FC = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default PublicArticles
+export default PublicArticles;

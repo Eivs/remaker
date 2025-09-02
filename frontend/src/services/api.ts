@@ -1,12 +1,12 @@
 import axios from 'axios';
-import type { 
-  User, 
-  Article, 
-  ArticleCreate, 
-  ArticleUpdate, 
-  LoginRequest, 
-  RegisterRequest, 
-  AuthResponse 
+import type {
+  Article,
+  ArticleCreate,
+  ArticleUpdate,
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  User,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -30,7 +30,7 @@ export const authAPI = {
     const formData = new FormData();
     formData.append('username', data.username);
     formData.append('password', data.password);
-    
+
     const response = await api.post('/auth/login', formData);
     return response.data;
   },
