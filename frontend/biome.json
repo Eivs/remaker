@@ -19,11 +19,12 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "useUniqueElementIds": "off"
+        "useUniqueElementIds": "error"
       },
       "a11y": {
         "useKeyWithClickEvents": "off",
-        "noStaticElementInteractions": "off"
+        "noStaticElementInteractions": "off",
+        "noLabelWithoutControl": "off"
       }
     }
   },

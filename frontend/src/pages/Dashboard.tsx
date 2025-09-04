@@ -1,38 +1,76 @@
-import { Clock, Edit, Eye, Globe, PenTool, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock, Edit, Eye, Globe, PenTool, Trash2, User } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import {
+  oneDark,
+  oneLight,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
+import TagBadge from '../components/TagBadge';
+import TagFilter from '../components/TagFilter';
+import { useI18n } from '../contexts/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { articlesAPI } from '../services/api';
 import type { Article } from '../types';
 
 const Dashboard: React.FC = () => {
+  const { t } = useI18n();
+  const { theme } = useTheme();
   const [articles, setArticles] = useState<Article[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingArticle, setIsLoadingArticle] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTagId, setSelectedTagId] = useState<number | undefined>();
 
   useEffect(() => {
     loadArticles();
-  }, []);
+  }, [selectedTagId]);
 
   const loadArticles = async () => {
     try {
-      const data = await articlesAPI.getUserArticles();
+      setIsLoading(true);
+      setError('');
+      const data = await articlesAPI.getUserArticles(selectedTagId);
       setArticles(data);
     } catch (err: any) {
-      setError('加载文章失败：' + (err.response?.data?.detail || err.message));
+      setError(
+        t('dashboard.loadFailed') + (err.response?.data?.detail || err.message)
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除这篇文章吗？')) return;
+    if (!confirm(t('dashboard.confirmDelete'))) return;
 
     try {
       await articlesAPI.deleteArticle(id);
       setArticles(articles.filter((article) => article.id !== id));
     } catch (err: any) {
-      setError('删除失败：' + (err.response?.data?.detail || err.message));
+      setError(
+        t('dashboard.deleteFailed') +
+          (err.response?.data?.detail || err.message)
+      );
+    }
+  };
+
+  const loadFullArticle = async (articleId: number) => {
+    try {
+      setIsLoadingArticle(true);
+      setError('');
+      const fullArticle = await articlesAPI.getArticle(articleId);
+      setSelectedArticle(fullArticle);
+    } catch (err: any) {
+      setError(
+        t('dashboard.loadFailed') + (err.response?.data?.detail || err.message)
+      );
+    } finally {
+      setIsLoadingArticle(false);
     }
   };
 
@@ -48,19 +86,127 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // 文章预览视图
+  if (selectedArticle) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => setSelectedArticle(null)}
+            className="flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>{t('dashboard.backToList')}</span>
+          </button>
+          
+          <Link
+            to={`/editor/${selectedArticle.id}`}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Edit className="h-4 w-4" />
+            <span>{t('dashboard.edit')}</span>
+          </Link>
+        </div>
+
+        {isLoadingArticle ? (
+          <div className="flex items-center justify-center min-h-96">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <article className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                {selectedArticle.title}
+              </h1>
+              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <User className="h-4 w-4" />
+                  <span>{selectedArticle.author.username}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{formatDate(selectedArticle.created_at)}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  {selectedArticle.is_published ? (
+                    <>
+                      <Globe className="h-4 w-4" />
+                      <span>{t('dashboard.published')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      <span>{t('dashboard.draft')}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* 显示文章标签 */}
+              {selectedArticle.tags && selectedArticle.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedArticle.tags.map((tag) => (
+                    <TagBadge key={tag.id} tag={tag} size="sm" />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-6">
+              <div className="markdown-preview prose max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, inline, className, children, ...props }) {
+                      const match = /language-(\\w+)/.exec(className || '');
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          style={theme === 'dark' ? oneDark : oneLight}
+                          language={match[1]}
+                          PreTag="div"
+                          {...props}
+                        >
+                          {String(children).replace(/\\n$/, '')}
+                        </SyntaxHighlighter>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {selectedArticle.content}
+                </ReactMarkdown>
+              </div>
+            </div>
+          </article>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          我的文章
+          {t('dashboard.title')}
         </h1>
         <Link
           to="/editor"
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
           <PenTool className="h-4 w-4" />
-          <span>写新文章</span>
+          <span>{t('dashboard.writeNew')}</span>
         </Link>
+      </div>
+
+      {/* 标签筛选器 */}
+      <div className="mb-6">
+        <TagFilter
+          selectedTagId={selectedTagId}
+          onTagSelect={setSelectedTagId}
+        />
       </div>
 
       {error && (
@@ -73,10 +219,10 @@ const Dashboard: React.FC = () => {
         <div className="text-center py-12">
           <PenTool className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-            还没有文章
+            {t('dashboard.noArticlesYet')}
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            开始创建你的第一篇 Markdown 文章吧！
+            {t('dashboard.createFirst')}
           </p>
           <div className="mt-6">
             <Link
@@ -84,7 +230,7 @@ const Dashboard: React.FC = () => {
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
             >
               <PenTool className="-ml-1 mr-2 h-5 w-5" />
-              写新文章
+              {t('dashboard.writeNew')}
             </Link>
           </div>
         </div>
@@ -96,39 +242,50 @@ const Dashboard: React.FC = () => {
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <Link
-                        to={`/editor/${article.id}`}
-                        className="block hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded p-2 -m-2"
+                      <div
+                        onClick={() => loadFullArticle(article.id)}
+                        className="block hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded p-2 -m-2 cursor-pointer"
                       >
                         <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
                           {article.title}
                         </p>
                         <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
                           <Clock className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                          创建于 {formatDate(article.created_at)}
+                          {t('dashboard.createdAt')}
+                          {formatDate(article.created_at)}
                           {article.updated_at &&
-                            ` • 更新于 ${formatDate(article.updated_at)}`}
+                            t('dashboard.updatedAt') +
+                              formatDate(article.updated_at)}
                         </p>
-                      </Link>
+
+                        {/* 显示文章标签 */}
+                        {article.tags && article.tags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {article.tags.map((tag) => (
+                              <TagBadge key={tag.id} tag={tag} size="sm" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
                       {article.is_published ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
                           <Globe className="h-3 w-3 mr-1" />
-                          已发布
+                          {t('dashboard.published')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300">
                           <Eye className="h-3 w-3 mr-1" />
-                          草稿
+                          {t('dashboard.draft')}
                         </span>
                       )}
 
                       <Link
                         to={`/editor/${article.id}`}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 p-1 rounded transition-colors"
-                        title="编辑"
+                        title={t('dashboard.edit')}
                       >
                         <Edit className="h-4 w-4" />
                       </Link>
@@ -137,7 +294,7 @@ const Dashboard: React.FC = () => {
                         type="button"
                         onClick={() => handleDelete(article.id)}
                         className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1 rounded transition-colors"
-                        title="删除"
+                        title={t('dashboard.delete')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

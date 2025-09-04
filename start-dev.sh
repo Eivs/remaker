@@ -13,6 +13,7 @@ fi
 # 启动后端
 echo "📡 启动后端服务器..."
 cd backend
+source .venv/bin/activate
 python main.py &
 BACKEND_PID=$!
 cd ..

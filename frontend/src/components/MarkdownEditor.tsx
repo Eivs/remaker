@@ -21,6 +21,7 @@ import {
   oneLight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
 import MermaidRenderer from './MermaidRenderer';
 
@@ -36,6 +37,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   placeholder,
 }) => {
   const [showPreview, setShowPreview] = useState(true);
+  const { t } = useI18n();
   const { theme } = useTheme();
 
   const insertText = useCallback(
@@ -67,16 +69,52 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   );
 
   const toolbarButtons = [
-    { icon: Bold, action: () => insertText('**', '**'), title: '粗体' },
-    { icon: Italic, action: () => insertText('*', '*'), title: '斜体' },
-    { icon: Heading1, action: () => insertText('# '), title: '标题 1' },
-    { icon: Heading2, action: () => insertText('## '), title: '标题 2' },
-    { icon: Heading3, action: () => insertText('### '), title: '标题 3' },
-    { icon: List, action: () => insertText('- '), title: '无序列表' },
-    { icon: ListOrdered, action: () => insertText('1. '), title: '有序列表' },
-    { icon: Quote, action: () => insertText('> '), title: '引用' },
-    { icon: Code, action: () => insertText('`', '`'), title: '行内代码' },
-    { icon: LinkIcon, action: () => insertText('[', '](url)'), title: '链接' },
+    {
+      icon: Bold,
+      action: () => insertText('**', '**'),
+      title: t('editor.bold'),
+    },
+    {
+      icon: Italic,
+      action: () => insertText('*', '*'),
+      title: t('editor.italic'),
+    },
+    {
+      icon: Heading1,
+      action: () => insertText('# '),
+      title: t('editor.heading1'),
+    },
+    {
+      icon: Heading2,
+      action: () => insertText('## '),
+      title: t('editor.heading2'),
+    },
+    {
+      icon: Heading3,
+      action: () => insertText('### '),
+      title: t('editor.heading3'),
+    },
+    {
+      icon: List,
+      action: () => insertText('- '),
+      title: t('editor.unorderedList'),
+    },
+    {
+      icon: ListOrdered,
+      action: () => insertText('1. '),
+      title: t('editor.orderedList'),
+    },
+    { icon: Quote, action: () => insertText('> '), title: t('editor.quote') },
+    {
+      icon: Code,
+      action: () => insertText('`', '`'),
+      title: t('editor.inlineCode'),
+    },
+    {
+      icon: LinkIcon,
+      action: () => insertText('[', '](url)'),
+      title: t('editor.link'),
+    },
   ];
 
   return (
@@ -107,7 +145,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           ) : (
             <Eye className="h-4 w-4" />
           )}
-          <span>{showPreview ? '隐藏预览' : '显示预览'}</span>
+          <span>
+            {showPreview ? t('editor.hidePreview') : t('editor.showPreview')}
+          </span>
         </button>
       </div>
 
@@ -121,7 +161,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             id="markdown-textarea"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder || '开始写作...'}
+            placeholder={placeholder || t('editor.startWriting')}
             className="w-full h-full p-4 border-0 resize-none focus:outline-none font-mono text-sm leading-relaxed bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             style={{ minHeight: 'calc(100vh - 200px)' }}
           />
@@ -165,7 +205,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   },
                 }}
               >
-                {value || '预览区域'}
+                {value || t('editor.previewArea')}
               </ReactMarkdown>
             </div>
           </div>

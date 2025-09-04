@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, articles
+from app.routers import auth, articles, tags
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -26,6 +26,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(auth.router, prefix="/api/auth", tags=["认证"])
 app.include_router(articles.router, prefix="/api", tags=["文章"])
+app.include_router(tags.router, prefix="/api", tags=["标签"])
 
 @app.get("/")
 async def root():

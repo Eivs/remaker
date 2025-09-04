@@ -8,29 +8,54 @@ import {
   oneLight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import TagBadge from '../components/TagBadge';
+import TagFilter from '../components/TagFilter';
+import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { articlesAPI } from '../services/api';
 import type { Article } from '../types';
 
 const PublicArticles: React.FC = () => {
+  const { t } = useI18n();
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingArticle, setIsLoadingArticle] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTagId, setSelectedTagId] = useState<number | undefined>();
   const { theme } = useTheme();
 
   useEffect(() => {
     loadPublicArticles();
-  }, []);
+  }, [selectedTagId]);
 
   const loadPublicArticles = async () => {
     try {
-      const data = await articlesAPI.getPublicArticles();
+      setIsLoading(true);
+      setError('');
+      const data = await articlesAPI.getPublicArticles(selectedTagId);
       setArticles(data);
     } catch (err: any) {
-      setError('加载文章失败：' + (err.response?.data?.detail || err.message));
+      setError(
+        t('public.loadFailed') + (err.response?.data?.detail || err.message)
+      );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadFullArticle = async (articleId: number) => {
+    try {
+      setIsLoadingArticle(true);
+      setError('');
+      const fullArticle = await articlesAPI.getArticle(articleId);
+      setSelectedArticle(fullArticle);
+    } catch (err: any) {
+      setError(
+        t('public.loadFailed') + (err.response?.data?.detail || err.message)
+      );
+    } finally {
+      setIsLoadingArticle(false);
     }
   };
 
@@ -48,7 +73,6 @@ const PublicArticles: React.FC = () => {
 
   // 文章详情视图
   if (selectedArticle) {
-    console.log(selectedArticle);
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
@@ -56,10 +80,15 @@ const PublicArticles: React.FC = () => {
           className="flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>返回文章列表</span>
+          <span>{t('public.backToList')}</span>
         </button>
 
-        <article className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        {isLoadingArticle ? (
+          <div className="flex items-center justify-center min-h-96">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <article className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               {selectedArticle.title}
@@ -75,9 +104,18 @@ const PublicArticles: React.FC = () => {
               </div>
               <div className="flex items-center space-x-1">
                 <Globe className="h-4 w-4" />
-                <span>已发布</span>
+                <span>{t('public.publishedStatus')}</span>
               </div>
             </div>
+
+            {/* 显示文章标签 */}
+            {selectedArticle.tags && selectedArticle.tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedArticle.tags.map((tag) => (
+                  <TagBadge key={tag.id} tag={tag} size="sm" />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="px-6 py-6">
@@ -109,6 +147,7 @@ const PublicArticles: React.FC = () => {
             </div>
           </div>
         </article>
+        )}
       </div>
     );
   }
@@ -118,11 +157,19 @@ const PublicArticles: React.FC = () => {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          公开文章
+          {t('public.title')}
         </h1>
         <p className="mt-2 text-gray-600 dark:text-gray-400">
-          浏览所有用户发布的 Markdown 文章
+          {t('public.subtitle')}
         </p>
+      </div>
+
+      {/* 标签筛选器 */}
+      <div className="mb-6">
+        <TagFilter
+          selectedTagId={selectedTagId}
+          onTagSelect={setSelectedTagId}
+        />
       </div>
 
       {error && (
@@ -135,10 +182,10 @@ const PublicArticles: React.FC = () => {
         <div className="text-center py-12">
           <Globe className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-            暂无公开文章
+            {t('public.noPublicArticles')}
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            等待其他用户发布精彩内容！
+            {t('public.waitingContent')}
           </p>
         </div>
       ) : (
@@ -147,15 +194,30 @@ const PublicArticles: React.FC = () => {
             <div
               key={article.id}
               className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md dark:hover:shadow-xl transition-shadow cursor-pointer"
-              onClick={() => setSelectedArticle(article)}
+              onClick={() => loadFullArticle(article.id)}
             >
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
                   {article.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-3">
                   {(article.content || '').substring(0, 150)}...
                 </p>
+
+                {/* 显示文章标签 */}
+                {article.tags && article.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {article.tags.slice(0, 3).map((tag) => (
+                      <TagBadge key={tag.id} tag={tag} size="sm" />
+                    ))}
+                    {article.tags.length > 3 && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        +{article.tags.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center space-x-1">
                     <User className="h-3 w-3" />

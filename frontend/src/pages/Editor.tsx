@@ -3,15 +3,19 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MarkdownEditor from '../components/MarkdownEditor';
+import TagSelector from '../components/TagSelector';
+import { useI18n } from '../contexts/I18nContext';
 import { articlesAPI } from '../services/api';
-import type { Article } from '../types';
+import type { Article, Tag } from '../types';
 
 const Editor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [article, setArticle] = useState<Article | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -29,6 +33,7 @@ const Editor: React.FC = () => {
       setArticle(articleData);
       setTitle(articleData.title);
       setContent(articleData.content);
+      setSelectedTags(articleData.tags || []);
     } catch (error: any) {
       console.error('Failed to load article:', error);
       navigate('/');
@@ -37,7 +42,7 @@ const Editor: React.FC = () => {
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
-      setSaveMessage('请填写标题和内容');
+      setSaveMessage(t('editor.requiredFields'));
       return;
     }
 
@@ -45,27 +50,33 @@ const Editor: React.FC = () => {
     setSaveMessage('');
 
     try {
+      const tagIds = selectedTags.map((tag) => tag.id);
+
       if (article) {
         // 更新现有文章
         const updatedArticle = await articlesAPI.updateArticle(article.id, {
           title: title.trim(),
           content: content.trim(),
+          tag_ids: tagIds,
         });
         setArticle(updatedArticle);
-        setSaveMessage('保存成功');
+        setSelectedTags(updatedArticle.tags || []);
+        setSaveMessage(t('editor.updateSuccess'));
       } else {
         // 创建新文章
         const newArticle = await articlesAPI.createArticle({
           title: title.trim(),
           content: content.trim(),
+          tag_ids: tagIds,
         });
         setArticle(newArticle);
-        setSaveMessage('创建成功');
+        setSelectedTags(newArticle.tags || []);
+        setSaveMessage(t('editor.createSuccess'));
         navigate(`/editor/${newArticle.id}`);
       }
     } catch (error: any) {
       setSaveMessage(
-        '保存失败：' + (error.response?.data?.detail || error.message)
+        t('editor.saveFailed') + (error.response?.data?.detail || error.message)
       );
     } finally {
       setIsSaving(false);
@@ -75,7 +86,7 @@ const Editor: React.FC = () => {
 
   const handlePublish = async () => {
     if (!article) {
-      setSaveMessage('请先保存文章');
+      setSaveMessage(t('editor.saveFirst'));
       return;
     }
 
@@ -86,15 +97,16 @@ const Editor: React.FC = () => {
       if (article.is_published) {
         await articlesAPI.unpublishArticle(article.id);
         setArticle({ ...article, is_published: false });
-        setSaveMessage('已取消发布');
+        setSaveMessage(t('editor.unpublishSuccess'));
       } else {
         await articlesAPI.publishArticle(article.id);
         setArticle({ ...article, is_published: true });
-        setSaveMessage('发布成功');
+        setSaveMessage(t('editor.publishSuccess'));
       }
     } catch (error: any) {
       setSaveMessage(
-        '操作失败：' + (error.response?.data?.detail || error.message)
+        t('editor.operationFailed') +
+          (error.response?.data?.detail || error.message)
       );
     } finally {
       setIsPublishing(false);
@@ -106,13 +118,13 @@ const Editor: React.FC = () => {
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
       {/* 顶部工具栏 */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex-1 mr-4">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="请输入文章标题..."
+              placeholder={t('editor.titlePlaceholder')}
               className="w-full text-xl font-semibold border-0 focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent text-gray-900 dark:text-white"
             />
           </div>
@@ -120,7 +132,7 @@ const Editor: React.FC = () => {
           <div className="flex items-center space-x-3">
             {saveMessage && (
               <span
-                className={`text-sm ${saveMessage.includes('失败') ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}
+                className={`text-sm ${saveMessage.includes(t('common.failed')) ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}
               >
                 {saveMessage}
               </span>
@@ -132,7 +144,7 @@ const Editor: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="h-4 w-4" />
-              <span>{isSaving ? '保存中...' : '保存'}</span>
+              <span>{isSaving ? t('editor.saving') : t('editor.save')}</span>
             </button>
 
             {article && (
@@ -152,14 +164,19 @@ const Editor: React.FC = () => {
                 )}
                 <span>
                   {isPublishing
-                    ? '处理中...'
+                    ? t('editor.publishing')
                     : article.is_published
-                      ? '取消发布'
-                      : '发布'}
+                      ? t('editor.unpublish')
+                      : t('editor.publish')}
                 </span>
               </button>
             )}
           </div>
+        </div>
+
+        {/* 标签选择器 */}
+        <div className="max-w-md">
+          <TagSelector selectedTags={selectedTags} onChange={setSelectedTags} />
         </div>
       </div>
 
@@ -168,7 +185,7 @@ const Editor: React.FC = () => {
         <MarkdownEditor
           value={content}
           onChange={setContent}
-          placeholder="开始编写你的 Markdown 内容..."
+          placeholder={t('editor.contentPlaceholder')}
         />
       </div>
     </div>

@@ -1,6 +1,7 @@
 import mermaid from 'mermaid';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
+import { useI18n } from '../contexts/I18nContext';
 
 interface MermaidRendererProps {
   chart: string;
@@ -8,6 +9,7 @@ interface MermaidRendererProps {
 }
 
 const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart, id }) => {
+  const { t } = useI18n();
   const elementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart, id }) => {
         console.error('Mermaid rendering error:', error);
         if (elementRef.current) {
           elementRef.current.innerHTML = `<div class="text-red-500 text-sm p-4 border border-red-300 rounded">
-            Mermaid 图表渲染错误: ${error}
+            ${t('mermaid.renderError')}${error}
           </div>`;
         }
       }

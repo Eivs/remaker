@@ -2,7 +2,9 @@ import { Globe, Home, LogOut, Moon, PenTool, Sun } from 'lucide-react';
 import type React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useI18n } from '../contexts/I18nContext';
 import { useTheme } from '../contexts/ThemeContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -34,7 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className="flex items-center space-x-2 text-xl font-bold text-gray-900 dark:text-white"
                 >
                   <PenTool className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  <span>Markdown Editor</span>
+                  <span>{t('app.title')}</span>
                 </Link>
 
                 {user && (
@@ -48,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       }`}
                     >
                       <Home className="h-4 w-4" />
-                      <span>我的文章</span>
+                      <span>{t('nav.dashboard')}</span>
                     </Link>
                     <Link
                       to="/editor"
@@ -59,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       }`}
                     >
                       <PenTool className="h-4 w-4" />
-                      <span>写文章</span>
+                      <span>{t('nav.editor')}</span>
                     </Link>
                     <Link
                       to="/public"
@@ -70,7 +73,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       }`}
                     >
                       <Globe className="h-4 w-4" />
-                      <span>公开文章</span>
+                      <span>{t('nav.articles')}</span>
                     </Link>
                   </div>
                 )}
@@ -78,11 +81,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
               <div className="flex items-center space-x-4">
                 {/* 主题切换按钮 */}
+                <LanguageSwitcher />
+
                 <button
                   type="button"
                   onClick={toggleTheme}
                   className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  aria-label="切换主题"
+                  aria-label={t('common.toggleTheme')}
                 >
                   {theme === 'light' ? (
                     <Moon className="h-5 w-5" />
@@ -94,7 +99,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {user && (
                   <>
                     <span className="text-sm text-gray-700 dark:text-gray-300">
-                      欢迎，{user.username}
+                      {t('common.welcome')}, {user.username}
                     </span>
                     <button
                       type="button"
@@ -102,7 +107,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span>退出</span>
+                      <span>{t('nav.logout')}</span>
                     </button>
                   </>
                 )}

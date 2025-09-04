@@ -6,6 +6,8 @@ import type {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
+  Tag,
+  TagCreate,
   User,
 } from '../types';
 
@@ -43,13 +45,15 @@ export const authAPI = {
 
 // 文章相关 API
 export const articlesAPI = {
-  getUserArticles: async (): Promise<Article[]> => {
-    const response = await api.get('/articles');
+  getUserArticles: async (tagId?: number): Promise<Article[]> => {
+    const params = tagId ? { tag_id: tagId } : {};
+    const response = await api.get('/articles', { params });
     return response.data;
   },
 
-  getPublicArticles: async (): Promise<Article[]> => {
-    const response = await api.get('/articles/public');
+  getPublicArticles: async (tagId?: number): Promise<Article[]> => {
+    const params = tagId ? { tag_id: tagId } : {};
+    const response = await api.get('/articles/public', { params });
     return response.data;
   },
 
@@ -80,5 +84,32 @@ export const articlesAPI = {
   unpublishArticle: async (id: number): Promise<Article> => {
     const response = await api.post(`/articles/${id}/unpublish`);
     return response.data;
+  },
+};
+
+// 标签相关 API
+export const tagsAPI = {
+  getAllTags: async (): Promise<Tag[]> => {
+    const response = await api.get('/tags');
+    return response.data;
+  },
+
+  createTag: async (data: TagCreate): Promise<Tag> => {
+    const response = await api.post('/tags', data);
+    return response.data;
+  },
+
+  getTag: async (id: number): Promise<Tag> => {
+    const response = await api.get(`/tags/${id}`);
+    return response.data;
+  },
+
+  updateTag: async (id: number, data: TagCreate): Promise<Tag> => {
+    const response = await api.put(`/tags/${id}`, data);
+    return response.data;
+  },
+
+  deleteTag: async (id: number): Promise<void> => {
+    await api.delete(`/tags/${id}`);
   },
 };

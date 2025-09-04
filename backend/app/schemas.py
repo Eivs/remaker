@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 # 用户相关模式
 class UserBase(BaseModel):
@@ -29,17 +29,33 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
+# 标签相关模式
+class TagBase(BaseModel):
+    name: str
+    color: Optional[str] = "#3B82F6"
+
+class TagCreate(TagBase):
+    pass
+
+class TagResponse(TagBase):
+    id: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 # 文章相关模式
 class ArticleBase(BaseModel):
     title: str
     content: str
 
 class ArticleCreate(ArticleBase):
-    pass
+    tag_ids: Optional[List[int]] = []
 
 class ArticleUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
+    tag_ids: Optional[List[int]] = None
 
 class ArticleResponse(ArticleBase):
     id: int
@@ -48,6 +64,7 @@ class ArticleResponse(ArticleBase):
     created_at: datetime
     updated_at: Optional[datetime]
     author: UserResponse
+    tags: List[TagResponse]
     
     class Config:
         from_attributes = True
@@ -60,6 +77,7 @@ class ArticleListResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime]
     author: UserResponse
+    tags: List[TagResponse]
     
     class Config:
         from_attributes = True

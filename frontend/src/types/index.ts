@@ -5,6 +5,18 @@ export interface User {
   created_at: string;
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface TagCreate {
+  name: string;
+  color?: string;
+}
+
 export interface Article {
   id: number;
   title: string;
@@ -14,16 +26,19 @@ export interface Article {
   created_at: string;
   updated_at?: string;
   author: User;
+  tags: Tag[];
 }
 
 export interface ArticleCreate {
   title: string;
   content: string;
+  tag_ids?: number[];
 }
 
 export interface ArticleUpdate {
   title?: string;
   content?: string;
+  tag_ids?: number[];
 }
 
 export interface LoginRequest {

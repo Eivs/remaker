@@ -3,8 +3,10 @@ import type React from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useI18n } from '../contexts/I18nContext';
 
 const Register: React.FC = () => {
+  const { t } = useI18n();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,7 +22,7 @@ const Register: React.FC = () => {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('密码确认不匹配');
+      setError(t('register.passwordMismatch'));
       return;
     }
 
@@ -44,15 +46,15 @@ const Register: React.FC = () => {
             <PenTool className="h-12 w-12 text-blue-600 dark:text-blue-400" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            注册 Markdown Editor
+            {t('register.title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            已有账户？{' '}
+            {t('register.hasAccount').split('?')[0]}?{' '}
             <Link
               to="/login"
               className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
             >
-              立即登录
+              {t('register.hasAccount').split('?')[1]?.trim()}
             </Link>
           </p>
         </div>
@@ -72,7 +74,7 @@ const Register: React.FC = () => {
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                用户名
+                {t('register.username')}
               </label>
               <input
                 id="username"
@@ -82,7 +84,7 @@ const Register: React.FC = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
-                placeholder="请输入用户名"
+                placeholder={t('register.usernamePlaceholder')}
               />
             </div>
             <div>
@@ -90,7 +92,7 @@ const Register: React.FC = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                邮箱
+                {t('register.email')}
               </label>
               <input
                 id="email"
@@ -100,7 +102,7 @@ const Register: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
-                placeholder="请输入邮箱"
+                placeholder={t('register.emailPlaceholder')}
               />
             </div>
             <div>
@@ -108,7 +110,7 @@ const Register: React.FC = () => {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                密码
+                {t('register.password')}
               </label>
               <input
                 id="password"
@@ -118,7 +120,7 @@ const Register: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
-                placeholder="请输入密码"
+                placeholder={t('register.passwordPlaceholder')}
               />
             </div>
             <div>
@@ -126,7 +128,7 @@ const Register: React.FC = () => {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                确认密码
+                {t('register.confirmPassword')}
               </label>
               <input
                 id="confirmPassword"
@@ -136,7 +138,7 @@ const Register: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors"
-                placeholder="请再次输入密码"
+                placeholder={t('register.confirmPasswordPlaceholder')}
               />
             </div>
           </div>
@@ -147,7 +149,7 @@ const Register: React.FC = () => {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? '注册中...' : '注册'}
+              {isLoading ? t('register.registering') : t('register.submit')}
             </button>
           </div>
         </form>

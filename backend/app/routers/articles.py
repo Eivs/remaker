@@ -1,8 +1,8 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import User, Article
+from ..models import User, Article, Tag
 from ..schemas import ArticleCreate, ArticleUpdate, ArticleResponse, ArticleListResponse
 from ..auth import get_current_user
 
@@ -10,17 +10,31 @@ router = APIRouter()
 
 @router.get("/articles", response_model=List[ArticleListResponse])
 async def get_user_articles(
+    tag_id: Optional[int] = Query(None, description="按标签ID筛选"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """获取当前用户的所有文章"""
-    articles = db.query(Article).filter(Article.author_id == current_user.id).all()
+    query = db.query(Article).filter(Article.author_id == current_user.id)
+    
+    if tag_id:
+        query = query.join(Article.tags).filter(Tag.id == tag_id)
+    
+    articles = query.all()
     return articles
 
 @router.get("/articles/public", response_model=List[ArticleListResponse])
-async def get_public_articles(db: Session = Depends(get_db)):
+async def get_public_articles(
+    tag_id: Optional[int] = Query(None, description="按标签ID筛选"),
+    db: Session = Depends(get_db)
+):
     """获取所有已发布的文章"""
-    articles = db.query(Article).filter(Article.is_published == True).all()
+    query = db.query(Article).filter(Article.is_published == True)
+    
+    if tag_id:
+        query = query.join(Article.tags).filter(Tag.id == tag_id)
+    
+    articles = query.all()
     return articles
 
 @router.get("/articles/{article_id}", response_model=ArticleResponse)
@@ -61,6 +75,14 @@ async def create_article(
     db.add(db_article)
     db.commit()
     db.refresh(db_article)
+    
+    # 添加标签
+    if article.tag_ids:
+        tags = db.query(Tag).filter(Tag.id.in_(article.tag_ids)).all()
+        db_article.tags = tags
+        db.commit()
+        db.refresh(db_article)
+    
     return db_article
 
 @router.put("/articles/{article_id}", response_model=ArticleResponse)
@@ -87,8 +109,18 @@ async def update_article(
     
     # 更新文章
     update_data = article_update.dict(exclude_unset=True)
+    tag_ids = update_data.pop('tag_ids', None)
+    
     for field, value in update_data.items():
         setattr(article, field, value)
+    
+    # 更新标签
+    if tag_ids is not None:
+        if tag_ids:
+            tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+            article.tags = tags
+        else:
+            article.tags = []
     
     db.commit()
     db.refresh(article)
