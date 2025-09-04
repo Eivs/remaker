@@ -1,5 +1,6 @@
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import type { LoginRequest, RegisterRequest, User } from '../types';
 
@@ -9,6 +10,8 @@ interface AuthContextType {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  error: string | null;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // 检查本地存储中是否有 token
@@ -43,6 +48,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    // 监听 token 失效事件
+    const handleTokenExpired = (event: CustomEvent) => {
+      setError(event.detail.message);
+      setUser(null);
+      navigate('/login');
+    };
+
+    window.addEventListener(
+      'auth:token-expired',
+      handleTokenExpired as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'auth:token-expired',
+        handleTokenExpired as EventListener
+      );
+    };
+  }, [navigate]);
 
   const login = async (data: LoginRequest) => {
     try {
@@ -78,6 +104,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setError(null);
+  };
+
+  const clearError = () => {
+    setError(null);
   };
 
   const value = {
@@ -86,6 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     register,
     logout,
     isLoading,
+    error,
+    clearError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

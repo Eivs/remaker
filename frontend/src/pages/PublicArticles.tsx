@@ -89,64 +89,64 @@ const PublicArticles: React.FC = () => {
           </div>
         ) : (
           <article className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {selectedArticle.title}
-            </h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center space-x-1">
-                <User className="h-4 w-4" />
-                <span>{selectedArticle.author.username}</span>
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                {selectedArticle.title}
+              </h1>
+              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <User className="h-4 w-4" />
+                  <span>{selectedArticle.author.username}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{formatDate(selectedArticle.created_at)}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Globe className="h-4 w-4" />
+                  <span>{t('public.publishedStatus')}</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-1">
-                <Clock className="h-4 w-4" />
-                <span>{formatDate(selectedArticle.created_at)}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Globe className="h-4 w-4" />
-                <span>{t('public.publishedStatus')}</span>
-              </div>
+
+              {/* 显示文章标签 */}
+              {selectedArticle.tags && selectedArticle.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedArticle.tags.map((tag) => (
+                    <TagBadge key={tag.id} tag={tag} size="sm" />
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* 显示文章标签 */}
-            {selectedArticle.tags && selectedArticle.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectedArticle.tags.map((tag) => (
-                  <TagBadge key={tag.id} tag={tag} size="sm" />
-                ))}
+            <div className="px-6 py-6">
+              <div className="markdown-preview prose max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, inline, className, children, ...props }) {
+                      const match = /language-(\\w+)/.exec(className || '');
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          style={theme === 'dark' ? oneDark : oneLight}
+                          language={match[1]}
+                          PreTag="div"
+                          {...props}
+                        >
+                          {String(children).replace(/\\n$/, '')}
+                        </SyntaxHighlighter>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {selectedArticle.content}
+                </ReactMarkdown>
               </div>
-            )}
-          </div>
-
-          <div className="px-6 py-6">
-            <div className="markdown-preview prose max-w-none">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  code({ node, inline, className, children, ...props }) {
-                    const match = /language-(\\w+)/.exec(className || '');
-                    return !inline && match ? (
-                      <SyntaxHighlighter
-                        style={theme === 'dark' ? oneDark : oneLight}
-                        language={match[1]}
-                        PreTag="div"
-                        {...props}
-                      >
-                        {String(children).replace(/\\n$/, '')}
-                      </SyntaxHighlighter>
-                    ) : (
-                      <code className={className} {...props}>
-                        {children}
-                      </code>
-                    );
-                  },
-                }}
-              >
-                {selectedArticle.content}
-              </ReactMarkdown>
             </div>
-          </div>
-        </article>
+          </article>
         )}
       </div>
     );

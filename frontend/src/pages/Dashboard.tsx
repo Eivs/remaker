@@ -1,8 +1,17 @@
-import { ArrowLeft, Clock, Edit, Eye, Globe, PenTool, Trash2, User } from 'lucide-react';
+import {
+  ArrowLeft,
+  Clock,
+  Edit,
+  Eye,
+  Globe,
+  PenTool,
+  Trash2,
+  User,
+} from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { Link } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {
   oneDark,
@@ -98,7 +107,7 @@ const Dashboard: React.FC = () => {
             <ArrowLeft className="h-4 w-4" />
             <span>{t('dashboard.backToList')}</span>
           </button>
-          
+
           <Link
             to={`/editor/${selectedArticle.id}`}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"

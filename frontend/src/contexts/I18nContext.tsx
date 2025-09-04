@@ -92,8 +92,6 @@ const translations: Translation = {
     'dashboard.updatedAt': ' • Updated at ',
     'dashboard.published': 'Published',
     'dashboard.draft': 'Draft',
-    'dashboard.edit': 'Edit',
-    'dashboard.delete': 'Delete',
     // PublicArticles page
     'public.title': 'Public Articles',
     'public.subtitle': 'Browse all published Markdown articles',
@@ -137,6 +135,7 @@ const translations: Translation = {
     // Auth errors
     'auth.loginFailed': 'Login failed',
     'auth.registerFailed': 'Registration failed',
+    'auth.loginExpired': 'The login has expired, please log in again',
     // Common messages
     'common.failed': 'failed',
     'dashboard.backToList': 'Back to article list',
@@ -217,8 +216,6 @@ const translations: Translation = {
     'dashboard.updatedAt': ' • 更新于 ',
     'dashboard.published': '已发布',
     'dashboard.draft': '草稿',
-    'dashboard.edit': '编辑',
-    'dashboard.delete': '删除',
     // PublicArticles page
     'public.title': '公开文章',
     'public.subtitle': '浏览所有用户发布的 Markdown 文章',
@@ -261,6 +258,7 @@ const translations: Translation = {
     // Auth errors
     'auth.loginFailed': '登录失败',
     'auth.registerFailed': '注册失败',
+    'auth.loginExpired': '登录已过期，请重新登录',
     // Common messages
     'common.failed': '失败',
     'dashboard.backToList': '返回文章列表',
